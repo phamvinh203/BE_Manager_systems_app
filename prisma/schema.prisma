@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  HR
+  EMPLOYEE
+}
+
+model User {
+ id        Int       @id @default(autoincrement())
+ email     String    @unique
+ fullName  String?  
+ password  String?   @map("password")    
+ isActive  Boolean   @default(true) @map("is_active")
+ employee  Employee? 
+ role      Role      @default(EMPLOYEE)
+ createdAt DateTime  @default(now()) @map("created_at")
+ updatedAt DateTime  @updatedAt @map("updated_at")
+
+ @@map("users")
+}
+
+
+model Employee {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique
+  firstName   String   @map("first_name")
+  lastName    String   @map("last_name")
+  email       String?  @unique
+  phone       String?
+  position    String?
+  salary      Float?
+  status      String   @default("ACTIVE")
+  hiredAt     DateTime @map("hired_at")
+  // Thay đổi department từ String sang relation
+  departmentId Int?    @map("department_id")
+  department   Department? @relation("DepartmentEmployees", fields: [departmentId], references: [id])
+  
+  // Relation cho manager
+  managedDepartment Department? @relation("DepartmentManager")
+
+  userId      Int?     @unique
+  user        User?    @relation(fields: [userId], references: [id])
+  attendances Attendance[]
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("employees")
+}
+
+model Department {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  managerId Int?      @unique @map("manager_id")
+  manager   Employee? @relation("DepartmentManager", fields: [managerId], references: [id])
+  
+  employees Employee[] @relation("DepartmentEmployees")
+  
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@map("departments")
+}
+
+
+model Attendance {
+  id          Int       @id @default(autoincrement())
+  employeeId  Int       @map("employee_id")
+  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  date        DateTime  @db.Date
+  checkIn     DateTime? @map("check_in")
+  checkOut    DateTime? @map("check_out")
+  totalHours  Float?    @map("total_hours")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@unique([employeeId, date]) 
+  @@index([date])
+  @@index([employeeId])
+  @@map("attendances")
+}
