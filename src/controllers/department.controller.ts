@@ -325,4 +325,185 @@ export const departmentController = {
       return res.status(500).json({ message: "Lỗi server" });
     }
   },
+
+  // tạo manager cho phòng ban từ employeeId
+
+  async assignManager(req: Request, res: Response) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { departmentId, employeeId } = req.params;
+
+      // Check if department exists
+      const department = await prisma.department.findUnique({
+        where: { id: Number(departmentId) },
+      });
+
+      if (!department) {
+        return res.status(404).json({ message: "Không tìm thấy phòng ban" });
+      }
+
+      // Check if employee exists
+      const employee = await prisma.employee.findUnique({
+        where: { id: Number(employeeId) },
+        include: {
+          managedDepartment: true,
+        },
+      });
+
+      if (!employee) {
+        return res.status(404).json({ message: "Không tìm thấy nhân viên" });
+      }
+
+      // Check if employee belongs to the department
+      if (employee.departmentId !== Number(departmentId)) {
+        return res.status(400).json({
+          message: "Nhân viên này không thuộc phòng ban đã chỉ định",
+        });
+      }
+
+      // Check if employee is already a manager of another department
+      if (employee.managedDepartment && employee.managedDepartment.id !== Number(departmentId)) {
+        return res.status(400).json({ message: "Nhân viên này đã là quản lý của một phòng ban khác" });
+      }
+
+      // Assign manager
+      const updatedDepartment = await prisma.department.update({
+        where: { id: Number(departmentId) },
+        data: { managerId: Number(employeeId) },
+        include: {
+          manager: {
+            select: {
+              id: true,
+              code: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      return res.json({
+        message: "Gán quản lý cho phòng ban thành công",
+        data: updatedDepartment,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Lỗi server" });
+    }
+  },
+
+  // sửa manager cho phòng ban
+  async changeManager(req: Request, res: Response) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { departmentId, newManagerId } = req.params;
+
+      // Check if department exists
+      const department = await prisma.department.findUnique({
+        where: { id: Number(departmentId) },
+      });
+
+      if (!department) {
+        return res.status(404).json({ message: "Không tìm thấy phòng ban" });
+      }
+
+      // Check if new manager exists
+      const newManager = await prisma.employee.findUnique({
+        where: { id: Number(newManagerId) },
+        include: {
+          managedDepartment: true,
+        },
+      });
+
+      if (!newManager) {
+        return res.status(404).json({ message: "Không tìm thấy nhân viên quản lý mới" });
+      }
+
+      // Check if employee belongs to the department
+      if (newManager.departmentId !== Number(departmentId)) {
+        return res.status(400).json({
+          message: "Nhân viên này không thuộc phòng ban đã chỉ định",
+        });
+      }
+
+      // Check if new manager is already a manager of another department
+      if (newManager.managedDepartment && newManager.managedDepartment.id !== Number(departmentId)) {
+        return res.status(400).json({ message: "Nhân viên này đã là quản lý của một phòng ban khác" });
+      }
+
+      // Update manager
+      const updatedDepartment = await prisma.department.update({
+        where: { id: Number(departmentId) },
+        data: { managerId: Number(newManagerId) },
+        include: {
+          manager: {
+            select: {
+              id: true,
+              code: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      return res.json({
+        message: "Cập nhật quản lý phòng ban thành công",
+        data: updatedDepartment,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Lỗi server" });
+    }
+  },
+
+  // xem các manaeger của phòng ban
+  async getManagers(req: Request, res: Response) {
+    try {
+      const { departmentId } = req.params;
+
+      // Check if department exists
+      const department = await prisma.department.findUnique({
+        where: { id: Number(departmentId) },
+        include: {
+          manager: {
+            select: {
+              id: true,
+              code: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+            },
+          },
+        },
+      });
+      
+      if (!department) {
+        return res.status(404).json({ message: "Không tìm thấy phòng ban" });
+      }
+
+      if (!department.manager) {
+        return res.status(404).json({ message: "Phòng ban chưa có quản lý" });
+      }
+
+      return res.json({
+        message: "Lấy thông tin quản lý phòng ban thành công",
+        data: department.manager,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Lỗi server" });
+    }
+  },
 };

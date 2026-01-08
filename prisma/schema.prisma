@@ -13,6 +13,22 @@ enum Role {
   EMPLOYEE
 }
 
+enum LeaveType {
+  ANNUAL
+  SICK
+  UNPAID
+  WFH
+  OTHER
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+
 model User {
  id        Int       @id @default(autoincrement())
  email     String    @unique
@@ -43,14 +59,19 @@ model Employee {
   department   Department? @relation("DepartmentEmployees", fields: [departmentId], references: [id])
 
   positionId   Int?    @map("position_id")
-  position     Position? @relation(fields: [positionId], references: [id])  
-  
+  position     Position? @relation(fields: [positionId], references: [id])
+
   // Relation cho manager
   managedDepartment Department? @relation("DepartmentManager")
 
   userId      Int?     @unique
   user        User?    @relation(fields: [userId], references: [id])
   attendances Attendance[]
+
+  // Leave request relations
+  leaveRequests    LeaveRequest[] @relation("EmployeeLeaveRequests")
+  approvedRequests LeaveRequest[] @relation("LeaveApprover")
+  leaveBalances    LeaveBalance[]
 
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
@@ -105,4 +126,53 @@ model Attendance {
   @@index([date])
   @@index([employeeId])
   @@map("attendances")
+}
+
+model LeaveRequest {
+  id          Int          @id @default(autoincrement())
+  employeeId  Int          @map("employee_id")
+  employee    Employee     @relation("EmployeeLeaveRequests", fields: [employeeId], references: [id])
+
+  leaveType   LeaveType
+  startDate    DateTime     @map("from_date")
+  endDate      DateTime     @map("to_date")
+  totalDays   Float        @map("total_days")
+  reason      String?
+
+  status      LeaveStatus  @default(PENDING)
+
+  approverId  Int?         @map("approver_id")
+  approver    Employee?    @relation("LeaveApprover", fields: [approverId], references: [id])
+
+  approvedAt  DateTime?    @map("approved_at")
+  rejectedAt  DateTime?    @map("rejected_at")
+  rejectNote  String?
+
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  @@index([employeeId])
+  @@index([status])
+  @@map("leave_requests")
+}
+
+
+model LeaveBalance {
+  id            Int       @id @default(autoincrement())
+  employeeId    Int       @map("employee_id")
+  employee      Employee  @relation(fields: [employeeId], references: [id])
+
+  year          Int       // Năm áp dụng
+  leaveType     LeaveType
+
+  totalDays     Float     // Tổng số ngày được phép
+  usedDays      Float     @default(0)  // Đã sử dụng
+  pendingDays   Float     @default(0)  // Đang chờ duyệt
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([employeeId, year, leaveType])
+  @@index([employeeId])
+  @@map("leave_balances")
 }

@@ -37,4 +37,27 @@ router.delete(
   departmentController.delete
 );
 
+// thêm manager cho phòng ban
+router.post(
+  "/:departmentId/assign-manager/:employeeId",
+  requireRole("ADMIN", "HR"),
+  departmentValidator.assignManager,
+  departmentController.assignManager
+);
+
+// sửa manager cho phòng ban
+router.put(
+  "/:departmentId/change-manager/:newManagerId",
+  requireRole("ADMIN", "HR"),
+  departmentValidator.changeManager,
+  departmentController.changeManager
+);
+
+// xem các manaeger của phòng ban
+router.get(
+  "/:departmentId/managers",
+  requireRole("ADMIN", "HR"),
+  departmentController.getManagers
+);
+
 export default router;

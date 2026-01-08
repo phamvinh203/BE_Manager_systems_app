@@ -25,4 +25,6 @@ router.get(
   attendanceController.getAll
 );
 
+
+
 export default router;

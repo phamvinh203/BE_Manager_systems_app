@@ -44,4 +44,22 @@ export const departmentValidator = {
       .isInt({ min: 1 })
       .withMessage("ID phòng ban không hợp lệ"),
   ],
+
+  assignManager: [
+    param("departmentId")
+      .isInt({ min: 1 })
+      .withMessage("ID phòng ban không hợp lệ"),
+    param("employeeId")
+      .isInt({ min: 1 })
+      .withMessage("ID nhân viên không hợp lệ"),
+  ],
+
+  changeManager: [
+    param("departmentId")
+      .isInt({ min: 1 })
+      .withMessage("ID phòng ban không hợp lệ"),
+    param("newManagerId")
+      .isInt({ min: 1 })
+      .withMessage("ID quản lý mới không hợp lệ"),
+  ],
 };
