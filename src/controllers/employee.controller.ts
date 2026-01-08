@@ -37,7 +37,7 @@ export const employeeController = {
       }
 
       if (department) {
-        where.department = { contains: String(department), mode: "insensitive" };
+        where.departmentId = Number(department);
       }
 
       // Get employees with pagination
@@ -47,6 +47,27 @@ export const employeeController = {
           skip,
           take: limitNum,
           orderBy: { createdAt: "desc" },
+          include: {
+            department: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            position: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            user: {
+              select: {
+                id: true,
+                email: true,
+                role: true,
+              },
+            },
+          },
         }),
         prisma.employee.count({ where }),
       ]);
@@ -68,13 +89,26 @@ export const employeeController = {
   },
 
 
-  // Lấy thông tin nhân viên theo userId (dùng cho employee login)
-  async getEmployeeByUserId(req: Request, res: Response) {
+  // lấy thông tin chi tiết của một nhân viên theo userId
+  async getById(req: Request, res: Response) {
     try {
       const { userId } = req.params;
-
       const employee = await prisma.employee.findFirst({
         where: { userId: Number(userId) },
+        include: {
+          department: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          position: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
       });
 
       if (!employee) {
@@ -105,8 +139,8 @@ export const employeeController = {
       lastName,
       email,
       phone,
-      position,
-      department,
+      positionId,
+      departmentId,
       salary,
       status,
       hiredAt,
@@ -164,8 +198,8 @@ export const employeeController = {
           lastName,
           email,
           phone,
-          position,
-          department,
+          positionId: positionId ? Number(positionId) : null,
+          departmentId: departmentId ? Number(departmentId) : null,
           salary: salary ? Number(salary) : null,
           status: status || "ACTIVE",
           hiredAt: new Date(hiredAt),
@@ -226,8 +260,8 @@ export const employeeController = {
         lastName,
         email,
         phone,
-        position,
-        department,
+        positionId,
+        departmentId,
         salary,
         status,
         hiredAt,
@@ -272,8 +306,8 @@ export const employeeController = {
           ...(lastName && { lastName }),
           ...(email !== undefined && { email }),
           ...(phone !== undefined && { phone }),
-          ...(position !== undefined && { position }),
-          ...(department !== undefined && { department }),
+          ...(positionId !== undefined && { positionId: positionId ? Number(positionId) : null }),
+          ...(departmentId !== undefined && { departmentId: departmentId ? Number(departmentId) : null }),
           ...(salary !== undefined && { salary: salary ? Number(salary) : null }),
           ...(status && { status }),
           ...(hiredAt && { hiredAt: new Date(hiredAt) }),

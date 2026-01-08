@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET!;
 const ACCESS_TOKEN_EXPIRES_IN = "15m";
 
-export type UserRole = "ADMIN" | "HR" | "USER";
+export type UserRole = "ADMIN" | "HR" | "EMPLOYEE";
 
 export interface TokenPayload {
   userId: number;

@@ -12,7 +12,7 @@ export const authController = {
       if (!validation.success) {
         return res.status(400).json({
           message: "Validation error",
-          errors: validation.error.errors,
+          errors: validation.error,
         });
       }
 
@@ -38,7 +38,7 @@ export const authController = {
           email,
           fullName,
           password: hashedPassword,
-          role: role || "USER",
+          role: role || "EMPLOYEE",
         },
       });
 
@@ -64,15 +64,33 @@ export const authController = {
       if (!validation.success) {
         return res.status(400).json({
           message: "Validation error",
-          errors: validation.error.errors,
+          errors: validation.error,
         });
       }
 
       const { email, password } = validation.data;
 
-      // 1. Find user
+      // 1. Find user with employee info including department and position
       const user = await prisma.user.findUnique({
         where: { email },
+        include: {
+          employee: {
+            include: {
+              department: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+              position: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
       });
 
       if (!user) {
@@ -82,6 +100,12 @@ export const authController = {
       }
 
       // 2. Compare password
+
+      if (!user.password) {
+        return res.status(400).json({
+          message: "Invalid email or password",
+        });
+      }
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
         return res.status(400).json({
@@ -104,6 +128,11 @@ export const authController = {
           email: user.email,
           fullName: user.fullName,
           role: user.role,
+          employee: user.employee ? {
+            code: user.employee.code,
+            department: user.employee.department,
+            position: user.employee.position,
+          } : null,
         },
       });
     } catch (error) {
@@ -111,4 +140,23 @@ export const authController = {
       return res.status(500).json({ message: "Server error" });
     }
   },
+
+  async logout(req: Request, res: Response) {
+    try {
+      // Token-based logout: tokens are stateless JWT, so we just return success
+      // Client should remove the token from their storage
+      // For PostgreSQL implementation, you could:
+      // 1. Add a token blacklist table
+      // 2. Store revoked tokens with expiration
+      // 3. Check blacklist on each authenticated request
+      // Currently using stateless JWT approach (recommended for scalability)
+
+      return res.json({
+        message: "Logout successful",
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Server error" });
+    }
+  }
 };

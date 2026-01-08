@@ -35,13 +35,15 @@ model Employee {
   lastName    String   @map("last_name")
   email       String?  @unique
   phone       String?
-  position    String?
   salary      Float?
   status      String   @default("ACTIVE")
   hiredAt     DateTime @map("hired_at")
-  // Thay đổi department từ String sang relation
+
   departmentId Int?    @map("department_id")
   department   Department? @relation("DepartmentEmployees", fields: [departmentId], references: [id])
+
+  positionId   Int?    @map("position_id")
+  position     Position? @relation(fields: [positionId], references: [id])  
   
   // Relation cho manager
   managedDepartment Department? @relation("DepartmentManager")
@@ -61,14 +63,31 @@ model Department {
   name      String    @unique
   managerId Int?      @unique @map("manager_id")
   manager   Employee? @relation("DepartmentManager", fields: [managerId], references: [id])
-  
+
   employees Employee[] @relation("DepartmentEmployees")
-  
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
+  positions Position[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("departments")
 }
+
+model Position {
+  id           Int        @id @default(autoincrement())
+  name         String
+  departmentId Int        @map("department_id")
+  department   Department @relation(fields: [departmentId], references: [id])
+
+  employees Employee[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([name, departmentId])
+  @@map("positions")
+}
+
 
 
 model Attendance {

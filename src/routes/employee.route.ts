@@ -5,14 +5,13 @@ import { authMiddleware, requireRole } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-// Áp dụng middleware xác thực cho tất cả các routes
 router.use(authMiddleware);
-
-// GET /api/employees/user/:userId - Lấy thông tin nhân viên theo User ID (All authenticated users)
-router.get("/user/:userId", employeeController.getEmployeeByUserId);
 
 // GET /api/employees - Lấy danh sách tất cả nhân viên (All authenticated users)
 router.get("/", employeeController.getAll);
+
+// GET /api/employees/:userId - Lấy thông tin chi tiết của một nhân viên theo userID khi login
+router.get("/:userId", employeeValidator.getById, employeeController.getById);
 
 
 // POST /api/employees - Tạo nhân viên mới (Chỉ ADMIN và HR)
