@@ -57,6 +57,7 @@ router.put(
 router.get(
   "/:departmentId/managers",
   requireRole("ADMIN", "HR"),
+  departmentValidator.getManagers,
   departmentController.getManagers
 );
 

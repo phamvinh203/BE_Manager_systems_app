@@ -4,6 +4,7 @@ import employeeRoutes from "./employee.route.js";
 import attendanceRoutes from "./attendance.route.js";
 import departmentRoutes from "./department.route.js";
 import positionRoutes from "./position.route.js";
+import leaveRoutes from "./leave.route.js";
 
 const router = Router();
 
@@ -12,5 +13,7 @@ router.use("/employees", employeeRoutes);
 router.use("/departments", departmentRoutes);
 router.use("/positions", positionRoutes);
 router.use("/attendance", attendanceRoutes);
+router.use("/leave", leaveRoutes);
+
 
 export default router;

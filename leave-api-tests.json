@@ -1,0 +1,590 @@
+{
+  "info": {
+    "name": "Leave Management API",
+    "description": "Collection để test các API quản lý nghỉ phép",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000/api"
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Leave Requests",
+      "description": "APIs quản lý đơn xin nghỉ",
+      "item": [
+        {
+          "name": "Tạo đơn xin nghỉ phép năm (ANNUAL)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/leave/requests",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leaveType\": \"ANNUAL\",\n  \"startDate\": \"2026-01-15\",\n  \"endDate\": \"2026-01-17\",\n  \"reason\": \"Nghỉ phép năm đi du lịch\"\n}"
+            },
+            "description": "Tạo đơn xin nghỉ phép năm - All authenticated users"
+          }
+        },
+        {
+          "name": "Tạo đơn xin nghỉ ốm (SICK)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/leave/requests",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leaveType\": \"SICK\",\n  \"startDate\": \"2026-01-10\",\n  \"endDate\": \"2026-01-10\",\n  \"reason\": \"Bị cảm cúm\"\n}"
+            },
+            "description": "Tạo đơn xin nghỉ ốm - All authenticated users"
+          }
+        },
+        {
+          "name": "Tạo đơn xin nghỉ không lương (UNPAID)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/leave/requests",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leaveType\": \"UNPAID\",\n  \"startDate\": \"2026-01-20\",\n  \"endDate\": \"2026-01-22\",\n  \"reason\": \"Nghỉ việc riêng\"\n}"
+            },
+            "description": "Tạo đơn xin nghỉ không lương - All authenticated users"
+          }
+        },
+        {
+          "name": "Tạo đơn xin WFH",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/leave/requests",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leaveType\": \"WFH\",\n  \"startDate\": \"2026-01-12\",\n  \"endDate\": \"2026-01-12\",\n  \"reason\": \"Làm việc từ xa do có việc gia đình\"\n}"
+            },
+            "description": "Tạo đơn xin làm việc từ xa - All authenticated users"
+          }
+        },
+        {
+          "name": "Xem danh sách đơn của mình",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/leave/requests/me?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "requests", "me"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "PENDING",
+                  "disabled": true
+                },
+                {
+                  "key": "year",
+                  "value": "2026",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Xem danh sách đơn xin nghỉ của mình - All authenticated users"
+          }
+        },
+        {
+          "name": "Xem chi tiết 1 đơn",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/leave/requests/1",
+            "description": "Xem chi tiết một đơn xin nghỉ theo ID - Owner/Admin/HR"
+          }
+        },
+        {
+          "name": "Hủy đơn (khi PENDING)",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/leave/requests/1/cancel",
+            "description": "Hủy đơn xin nghỉ - Chỉ owner và khi đơn còn PENDING"
+          }
+        },
+        {
+          "name": "Xem đơn của nhân viên cấp dưới (Manager)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/leave/requests/team?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "requests", "team"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "PENDING",
+                  "disabled": true
+                },
+                {
+                  "key": "year",
+                  "value": "2026",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Xem danh sách đơn của nhân viên trong team - Manager/HR/Admin"
+          }
+        },
+        {
+          "name": "Duyệt đơn",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/leave/requests/1/approve",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Duyệt đơn xin nghỉ - Manager/HR/Admin"
+          }
+        },
+        {
+          "name": "Từ chối đơn",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/leave/requests/1/reject",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rejectNote\": \"Thời điểm này công ty đang bận dự án, không thể duyệt nghỉ\"\n}"
+            },
+            "description": "Từ chối đơn xin nghỉ - Manager/HR/Admin"
+          }
+        },
+        {
+          "name": "Xem tất cả đơn (HR/Admin)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/leave/requests?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "requests"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "PENDING",
+                  "disabled": true
+                },
+                {
+                  "key": "employeeId",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "year",
+                  "value": "2026",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Xem tất cả đơn xin nghỉ với filter - HR/Admin only"
+          }
+        },
+        {
+          "name": "Xem tất cả đơn theo trạng thái",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/leave/requests?status=PENDING&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "requests"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PENDING"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Xem tất cả đơn theo trạng thái PENDING/APPROVED/REJECTED/CANCELLED"
+          }
+        },
+        {
+          "name": "Xem tất cả đơn của 1 nhân viên",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/leave/requests?employeeId=1&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "requests"],
+              "query": [
+                {
+                  "key": "employeeId",
+                  "value": "1"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Xem tất cả đơn của một nhân viên cụ thể - HR/Admin"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Leave Balance",
+      "description": "APIs quản lý số ngày phép",
+      "item": [
+        {
+          "name": "Xem số ngày phép của mình",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/leave/balance/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "balance", "me"],
+              "query": [
+                {
+                  "key": "year",
+                  "value": "2026",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Xem số ngày phép còn lại của mình - All authenticated users"
+          }
+        },
+        {
+          "name": "Xem số ngày phép của mình theo năm",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/leave/balance/me?year=2026",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "balance", "me"],
+              "query": [
+                {
+                  "key": "year",
+                  "value": "2026"
+                }
+              ]
+            },
+            "description": "Xem số ngày phép của mình theo năm cụ thể"
+          }
+        },
+        {
+          "name": "Xem số ngày phép của 1 nhân viên (HR/Admin)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/leave/balance/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "balance", "1"],
+              "query": [
+                {
+                  "key": "year",
+                  "value": "2026",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Xem số ngày phép của một nhân viên - HR/Admin only"
+          }
+        },
+        {
+          "name": "Xem số ngày phép của nhân viên theo năm",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/leave/balance/1?year=2026",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "balance", "1"],
+              "query": [
+                {
+                  "key": "year",
+                  "value": "2026"
+                }
+              ]
+            },
+            "description": "Xem số ngày phép của nhân viên theo năm cụ thể"
+          }
+        },
+        {
+          "name": "Cập nhật số ngày phép ANNUAL (HR/Admin)",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/leave/balance/1",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"year\": 2026,\n  \"leaveType\": \"ANNUAL\",\n  \"totalDays\": 15\n}"
+            },
+            "description": "Cập nhật số ngày phép năm cho nhân viên - HR/Admin only"
+          }
+        },
+        {
+          "name": "Cập nhật số ngày phép SICK (HR/Admin)",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/leave/balance/1",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"year\": 2026,\n  \"leaveType\": \"SICK\",\n  \"totalDays\": 12\n}"
+            },
+            "description": "Cập nhật số ngày phép ốm cho nhân viên - HR/Admin only"
+          }
+        },
+        {
+          "name": "Khởi tạo balance đầu năm (Admin)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/leave/balance/init",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"year\": 2026\n}"
+            },
+            "description": "Khởi tạo số ngày phép đầu năm cho tất cả nhân viên - Admin only"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Test Validation Errors",
+      "description": "Test các trường hợp lỗi validation",
+      "item": [
+        {
+          "name": "Tạo đơn - thiếu leaveType",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/leave/requests",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startDate\": \"2026-01-15\",\n  \"endDate\": \"2026-01-17\",\n  \"reason\": \"Test\"\n}"
+            },
+            "description": "Test validation: leaveType là required"
+          }
+        },
+        {
+          "name": "Tạo đơn - loại nghỉ không hợp lệ",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/leave/requests",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leaveType\": \"INVALID_TYPE\",\n  \"startDate\": \"2026-01-15\",\n  \"endDate\": \"2026-01-17\"\n}"
+            },
+            "description": "Test validation: leaveType phải là ANNUAL, SICK, UNPAID hoặc WFH"
+          }
+        },
+        {
+          "name": "Tạo đơn - ngày kết thúc trước ngày bắt đầu",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/leave/requests",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leaveType\": \"ANNUAL\",\n  \"startDate\": \"2026-01-17\",\n  \"endDate\": \"2026-01-15\"\n}"
+            },
+            "description": "Test validation: endDate phải sau startDate"
+          }
+        },
+        {
+          "name": "Tạo đơn - ngày không hợp lệ",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/leave/requests",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leaveType\": \"ANNUAL\",\n  \"startDate\": \"invalid-date\",\n  \"endDate\": \"2026-01-17\"\n}"
+            },
+            "description": "Test validation: date format không hợp lệ"
+          }
+        },
+        {
+          "name": "Tạo đơn - reason quá dài",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/leave/requests",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leaveType\": \"ANNUAL\",\n  \"startDate\": \"2026-01-15\",\n  \"endDate\": \"2026-01-17\",\n  \"reason\": \"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Extra text to exceed 500 characters limit for testing validation purposes.\"\n}"
+            },
+            "description": "Test validation: reason không được quá 500 ký tự"
+          }
+        },
+        {
+          "name": "Cập nhật balance - năm không hợp lệ",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/leave/balance/1",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"year\": 2019,\n  \"leaveType\": \"ANNUAL\",\n  \"totalDays\": 12\n}"
+            },
+            "description": "Test validation: năm phải từ 2020-2100"
+          }
+        },
+        {
+          "name": "Cập nhật balance - totalDays âm",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/leave/balance/1",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"year\": 2026,\n  \"leaveType\": \"ANNUAL\",\n  \"totalDays\": -5\n}"
+            },
+            "description": "Test validation: totalDays phải là số không âm"
+          }
+        },
+        {
+          "name": "Xem đơn - ID không hợp lệ",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/leave/requests/0",
+            "description": "Test validation: ID phải là số nguyên dương"
+          }
+        },
+        {
+          "name": "Query - status không hợp lệ",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/leave/requests?status=INVALID",
+            "description": "Test validation: status phải là PENDING, APPROVED, REJECTED hoặc CANCELLED"
+          }
+        }
+      ]
+    }
+  ]
+}

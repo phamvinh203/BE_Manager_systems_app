@@ -351,11 +351,16 @@ export const departmentController = {
         where: { id: Number(employeeId) },
         include: {
           managedDepartment: true,
+          user: true,
         },
       });
 
       if (!employee) {
         return res.status(404).json({ message: "Không tìm thấy nhân viên" });
+      }
+
+      if (!employee.userId) {
+        return res.status(400).json({ message: "Nhân viên này chưa có tài khoản người dùng" });
       }
 
       // Check if employee belongs to the department
@@ -370,22 +375,29 @@ export const departmentController = {
         return res.status(400).json({ message: "Nhân viên này đã là quản lý của một phòng ban khác" });
       }
 
-      // Assign manager
-      const updatedDepartment = await prisma.department.update({
-        where: { id: Number(departmentId) },
-        data: { managerId: Number(employeeId) },
-        include: {
-          manager: {
-            select: {
-              id: true,
-              code: true,
-              firstName: true,
-              lastName: true,
-              email: true,
+      // Assign manager and update user role to MANAGER
+      const [updatedDepartment] = await Promise.all([
+        prisma.department.update({
+          where: { id: Number(departmentId) },
+          data: { managerId: Number(employeeId) },
+          include: {
+            manager: {
+              select: {
+                id: true,
+                code: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
             },
           },
-        },
-      });
+        }),
+        // Update user role to MANAGER
+        prisma.user.update({
+          where: { id: employee.userId },
+          data: { role: "MANAGER" },
+        }),
+      ]);
 
       return res.json({
         message: "Gán quản lý cho phòng ban thành công",
@@ -407,9 +419,16 @@ export const departmentController = {
 
       const { departmentId, newManagerId } = req.params;
 
-      // Check if department exists
+      // Check if department exists and get current manager
       const department = await prisma.department.findUnique({
         where: { id: Number(departmentId) },
+        include: {
+          manager: {
+            include: {
+              user: true,
+            },
+          },
+        },
       });
 
       if (!department) {
@@ -421,11 +440,16 @@ export const departmentController = {
         where: { id: Number(newManagerId) },
         include: {
           managedDepartment: true,
+          user: true,
         },
       });
 
       if (!newManager) {
         return res.status(404).json({ message: "Không tìm thấy nhân viên quản lý mới" });
+      }
+
+      if (!newManager.userId) {
+        return res.status(400).json({ message: "Nhân viên mới chưa có tài khoản người dùng" });
       }
 
       // Check if employee belongs to the department
@@ -440,22 +464,45 @@ export const departmentController = {
         return res.status(400).json({ message: "Nhân viên này đã là quản lý của một phòng ban khác" });
       }
 
-      // Update manager
-      const updatedDepartment = await prisma.department.update({
-        where: { id: Number(departmentId) },
-        data: { managerId: Number(newManagerId) },
-        include: {
-          manager: {
-            select: {
-              id: true,
-              code: true,
-              firstName: true,
-              lastName: true,
-              email: true,
+      // Prepare update operations
+      const updateOperations: any[] = [
+        // Update department manager
+        prisma.department.update({
+          where: { id: Number(departmentId) },
+          data: { managerId: Number(newManagerId) },
+          include: {
+            manager: {
+              select: {
+                id: true,
+                code: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
             },
           },
-        },
-      });
+        }),
+        // Update new manager's user role to MANAGER
+        prisma.user.update({
+          where: { id: newManager.userId },
+          data: { role: "MANAGER" },
+        }),
+      ];
+
+      // If there was an old manager, revert their role to EMPLOYEE
+      if (department.manager && department.manager.id !== Number(newManagerId)) {
+        if (department.manager.userId) {
+          updateOperations.push(
+            prisma.user.update({
+              where: { id: department.manager.userId },
+              data: { role: "EMPLOYEE" },
+            })
+          );
+        }
+      }
+
+      // Execute all updates in parallel
+      const [updatedDepartment] = await Promise.all(updateOperations);
 
       return res.json({
         message: "Cập nhật quản lý phòng ban thành công",
