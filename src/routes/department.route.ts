@@ -61,4 +61,12 @@ router.get(
   departmentController.getManagers
 );
 
+// Xem nhân viên của phòng ban
+router.get(
+  "/:departmentId/employees",
+  requireRole("ADMIN", "HR", "MANAGER"),
+  departmentValidator.getEmployees,
+  departmentController.getEmployees
+);
+
 export default router;

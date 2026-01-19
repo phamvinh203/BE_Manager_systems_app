@@ -553,4 +553,49 @@ export const departmentController = {
       return res.status(500).json({ message: "Lỗi server" });
     }
   },
+
+  // Xem nhân viên của phòng ban
+  async getEmployees(req: Request, res: Response) {
+    try {
+      const { departmentId } = req.params;
+
+      // Check if department exists
+      const department = await prisma.department.findUnique({
+        where: { id: Number(departmentId) },
+      });
+
+      if (!department) {
+        return res.status(404).json({ message: "Không tìm thấy phòng ban" });
+      }
+
+      // Get employees of the department
+      const employees = await prisma.employee.findMany({
+        where: { departmentId: Number(departmentId) },
+        select: {
+          id: true,
+          code: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          position: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          status: true,
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      return res.json({
+        message: "Lấy danh sách nhân viên phòng ban thành công",
+        data: employees,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Lỗi server" });
+    }
+  }
 };
